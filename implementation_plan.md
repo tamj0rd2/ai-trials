@@ -18,7 +18,7 @@
 - Print a human-readable table with developers as both rows and columns, and the cell values as the number of days each pair has worked together.
 
 ## 5. CLI Integration
-- Implement the above logic in a Kotlin main function.
+- Implement the above logic in a Go main function.
 - Ensure the tool runs in the current working directory and only requires access to the local git repository.
 
 ## 6. Future-Proofing

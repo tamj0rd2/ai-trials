@@ -17,12 +17,7 @@ This command line application analyzes git commit history to determine how many 
 - No privacy or data retention features beyond what is required for local analysis.
 
 ## Implementation Notes
-- The tool should be implemented in Kotlin.
+- The tool should be implemented in Go.
 - The tool should be runnable locally by any developer with access to the repository.
 - The tool should only require access to the local git repository in the current working directory.
-- The output table should be formatted for easy human readability.
-- Pairing statistics are based on the number of days developers paired, not the number of commits.
-
----
-
-**Last updated:** 2025-05-23
+- The output table should be formatted for easy human readability

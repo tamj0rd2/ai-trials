@@ -134,3 +134,48 @@ func writeAndOpenHTML(html, filename string) error { /* ... */ }
 
 This approach makes each function easier to read, test, and maintain.
 
+# Self-explanatory Functions Over Comments
+
+**Instruction:**
+
+Functions should be self-explanatory. If a comment is needed, it's a sign that a new function should probably be introduced.
+
+This isn't always the case, but it mostly is. A case where you might want comments is when writing complicated algorithms that people may find difficult to understand.
+
+## Rationale
+
+- Well-named functions serve as their own documentation
+- Breaking complex operations into aptly named smaller functions improves readability
+- Code should explain "how", function names should explain "what"
+- Reserve comments for particularly complex algorithms or edge cases that cannot be made clear through refactoring
+
+**Example (Anti-pattern):**
+
+```go
+func process(data []int) int {
+    // Calculate the sum of all even numbers in the array
+    sum := 0
+    for _, v := range data {
+        if v%2 == 0 {
+            sum += v
+        }
+    }
+    return sum
+}
+```
+
+**Better Alternative:**
+
+```go
+func sumEvenNumbers(data []int) int {
+    sum := 0
+    for _, v := range data {
+        if v%2 == 0 {
+            sum += v
+        }
+    }
+    return sum
+}
+```
+
+The improved function name makes the comment unnecessary and makes the code's purpose immediately clear.

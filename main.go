@@ -53,7 +53,6 @@ func main() {
 	// Group commits by date and calculate pair days
 	pairDays, devList := calculatePairDays(commits)
 
-	// Print table
 	// Generate HTML output
 	html := "<html><head><title>Pair Programming Stats</title><style>table,th,td{border:1px solid #ccc;border-collapse:collapse;}th,td{padding:8px;}</style></head><body>"
 	html += "<h1>Pair Programming Days Table (Last 2 Months)</h1>"

@@ -5,8 +5,6 @@ import (
 	"testing"
 )
 
-type Pair [2]string
-
 func TestPairingLogic_SingleDaySinglePair(t *testing.T) {
 	commits := []Commit{
 		NewCommit("2025-05-01", "Alice", "Bob"),
@@ -78,5 +76,50 @@ func TestPairingLogic_NoPairs(t *testing.T) {
 	}
 	if !reflect.DeepEqual(devList, []string{"Alice"}) {
 		t.Errorf("Unexpected devList: %v", devList)
+	}
+}
+
+func TestParseCommit_NoCoAuthor(t *testing.T) {
+	lines := []string{"Alice|2025-05-01|Initial commitEND_OF_COMMIT"}
+	commit := parseCommit(lines)
+	wantDevs := Developers{"Alice": {}}
+	if !reflect.DeepEqual(commit.Developers, wantDevs) {
+		t.Errorf("Expected only Alice, got %v", commit.Developers)
+	}
+	if commit.Date != "2025-05-01" {
+		t.Errorf("Expected date 2025-05-01, got %s", commit.Date)
+	}
+}
+
+func TestParseCommit_WithCoAuthor(t *testing.T) {
+	lines := []string{"Bob|2025-05-02|Add feature\n\nCo-authored-by: Carol <carol@example.com>END_OF_COMMIT"}
+	commit := parseCommit(lines)
+	expected := Developers{"Bob": {}, "Carol": {}}
+	if !reflect.DeepEqual(commit.Developers, expected) {
+		t.Errorf("Expected Bob and Carol, got %v", commit.Developers)
+	}
+	if commit.Date != "2025-05-02" {
+		t.Errorf("Expected date 2025-05-02, got %s", commit.Date)
+	}
+}
+
+func TestParseCommit_MultipleCoAuthors(t *testing.T) {
+	lines := []string{"Alice|2025-05-03|Refactor\n\nCo-authored-by: Bob <bob@example.com>\nCo-authored-by: Carol <carol@example.com>END_OF_COMMIT"}
+	commit := parseCommit(lines)
+	expected := Developers{"Alice": {}, "Bob": {}, "Carol": {}}
+	if !reflect.DeepEqual(commit.Developers, expected) {
+		t.Errorf("Expected Alice, Bob, and Carol, got %v", commit.Developers)
+	}
+	if commit.Date != "2025-05-03" {
+		t.Errorf("Expected date 2025-05-03, got %s", commit.Date)
+	}
+}
+
+func TestParseCommit_WeirdSpacing(t *testing.T) {
+	lines := []string{"Alice|2025-05-04|Fix bug\n\n  Co-authored-by: Bob <bob@example.com>  END_OF_COMMIT"}
+	commit := parseCommit(lines)
+	expected := Developers{"Alice": {}, "Bob": {}}
+	if !reflect.DeepEqual(commit.Developers, expected) {
+		t.Errorf("Expected Alice and Bob, got %v", commit.Developers)
 	}
 }

@@ -12,6 +12,7 @@ import (
 )
 
 type Developers map[string]struct{}
+type Pair [2]string
 
 type Commit struct {
 	Date       string
@@ -54,7 +55,7 @@ func main() {
 	pairDays, devList := calculatePairDays(commits)
 
 	// Generate HTML output
-	html := "<html><head><title>Pair Programming Stats</title><style>table,th,td{border:1px solid #ccc;border-collapse:collapse;}th,td{padding:8px;}</style></head><body>"
+	html := "<html><head><title>Pair Programming Stats</title><style>body,table,th,td{font-family:sans-serif;} table,th,td{border:1px solid #ccc;border-collapse:collapse;}th,td{padding:8px;}</style></head><body>"
 	html += "<h1>Pair Programming Days Table (Last 2 Months)</h1>"
 	html += "<table>"
 
@@ -70,11 +71,11 @@ func main() {
 		html += fmt.Sprintf("<tr><th>%s</th>", rowDev)
 		for _, colDev := range devList {
 			if rowDev == colDev {
-				html += "<td>-</td>"
+				html += "<td>-</td"
 			} else {
-				pair := [2]string{rowDev, colDev}
-				if rowDev > colDev {
-					pair = [2]string{colDev, rowDev}
+				pair := Pair{rowDev, colDev}
+				if pair[0] > pair[1] {
+					pair[0], pair[1] = pair[1], pair[0]
 				}
 				html += fmt.Sprintf("<td>%d</td>", pairDays[pair])
 			}
@@ -132,37 +133,44 @@ func NewCommit(date string, devs ...string) Commit {
 }
 
 // calculatePairDays groups commits by date and returns pair day counts and sorted developer list
-func calculatePairDays(commits []Commit) (map[[2]string]int, []string) {
+func calculatePairDays(commits []Commit) (map[Pair]int, []string) {
 	commitsByDate := map[string][]Commit{}
 	for _, c := range commits {
 		commitsByDate[c.Date] = append(commitsByDate[c.Date], c)
 	}
-	pairDays := map[[2]string]int{}
+	pairDays := map[Pair]map[string]struct{}{} // pair -> set of dates
 	allDevs := map[string]struct{}{}
-	for _, dailyCommits := range commitsByDate {
-		devsToday := map[string]struct{}{}
+	for date, dailyCommits := range commitsByDate {
+		pairsToday := map[Pair]struct{}{}
 		for _, c := range dailyCommits {
+			devList := []string{}
 			for d := range c.Developers {
-				devsToday[d] = struct{}{}
+				devList = append(devList, d)
+				allDevs[d] = struct{}{}
+			}
+			sort.Strings(devList)
+			for i := 0; i < len(devList); i++ {
+				for j := i + 1; j < len(devList); j++ {
+					pair := Pair{devList[i], devList[j]}
+					pairsToday[pair] = struct{}{}
+				}
 			}
 		}
-		devList := []string{}
-		for d := range devsToday {
-			devList = append(devList, d)
-			allDevs[d] = struct{}{}
-		}
-		sort.Strings(devList)
-		for i := 0; i < len(devList); i++ {
-			for j := i + 1; j < len(devList); j++ {
-				pair := [2]string{devList[i], devList[j]}
-				pairDays[pair]++
+		for pair := range pairsToday {
+			if pairDays[pair] == nil {
+				pairDays[pair] = map[string]struct{}{}
 			}
+			pairDays[pair][date] = struct{}{}
 		}
+	}
+	result := map[Pair]int{}
+	for pair, dates := range pairDays {
+		result[pair] = len(dates)
 	}
 	devList := []string{}
 	for d := range allDevs {
 		devList = append(devList, d)
 	}
 	sort.Strings(devList)
-	return pairDays, devList
+	return result, devList
 }

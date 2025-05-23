@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pair Programming Stats</title>
+    <style>
+        body, table, th, td {
+            font-family: sans-serif;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pair Programming Days Table (Last 2 Months)</h1>
+    <table>
+        <tr>
+            <th></th>
+            {{range .Developers}}
+            <th>{{.}}</th>
+            {{end}}
+        </tr>
+        {{range $rowIndex, $rowDev := .Developers}}
+        <tr>
+            <th>{{$rowDev}}</th>
+            {{range $colIndex, $colDev := $.Developers}}
+                {{if eq $rowDev $colDev}}
+                <td>-</td>
+                {{else}}
+                <td>{{index $.PairDays $rowDev $colDev}}</td>
+                {{end}}
+            {{end}}
+        </tr>
+        {{end}}
+    </table>
+</body>
+</html>
+

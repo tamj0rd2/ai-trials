@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"embed"
 	"fmt"
+	"html/template"
 	"os"
 	"os/exec"
 	"sort"
@@ -21,10 +23,11 @@ func main() {
 
 	pairDays, devList := calculatePairDays(commits)
 
-	html := generateHTMLTable(pairDays, devList)
+	// Convert to template data structure
+	templateData := createTemplateData(pairDays, devList)
 
-	if err := writeAndOpenHTML(html, "output.html"); err != nil {
-		fmt.Println("Error writing or opening HTML:", err)
+	if err := generateHTMLFromTemplate(templateData, "template.html", "output.html"); err != nil {
+		fmt.Println("Error generating HTML:", err)
 	}
 }
 
@@ -212,94 +215,60 @@ func extractNameFromCoAuthorLine(coAuthorInfo string) string {
 	return coAuthorInfo
 }
 
-// generateHTMLTable creates HTML output with pairing statistics
-func generateHTMLTable(pairDays map[Pair]int, devList []string) string {
-	html := `<html>
-<head>
-    <title>Pair Programming Stats</title>
-    <style>
-        body, table, th, td {
-            font-family: sans-serif;
-        }
-        table, th, td {
-            border: 1px solid #ccc;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 8px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Pair Programming Days Table (Last 2 Months)</h1>
-    <table>
-`
-
-	// Header row
-	html += "<tr><th></th>"
-	for _, dev := range devList {
-		html += fmt.Sprintf("<th>%s</th>", dev)
-	}
-	html += "</tr>\n"
-
-	// Data rows
-	for _, rowDev := range devList {
-		html += fmt.Sprintf("<tr><th>%s</th>", rowDev)
-
-		for _, colDev := range devList {
-			if rowDev == colDev {
-				html += "<td>-</td>"
-			} else {
-				// Create pair (in lexicographically sorted order)
-				pair := Pair{rowDev, colDev}
-				if pair[0] > pair[1] {
-					pair[0], pair[1] = pair[1], pair[0]
-				}
-
-				// Get pair days count
-				count := 0
-				if days, ok := pairDays[pair]; ok {
-					count = days
-				}
-
-				html += fmt.Sprintf("<td>%d</td>", count)
-			}
-		}
-
-		html += "</tr>\n"
-	}
-
-	html += `    </table>
-</body>
-</html>`
-
-	return html
+// TemplateData holds the data structure needed for the HTML template
+type TemplateData struct {
+	Developers []string
+	PairDays   map[string]map[string]int
 }
 
-// writeAndOpenHTML writes HTML content to a file and opens it
-func writeAndOpenHTML(html, filename string) error {
-	// Write to file
-	f, err := os.Create(filename)
-	if err != nil {
-		return fmt.Errorf("error creating HTML file: %w", err)
+// createTemplateData converts the raw pair days data into a template-friendly structure
+func createTemplateData(pairDays map[Pair]int, devList []string) TemplateData {
+	// Initialize the map of maps
+	pairDaysMap := make(map[string]map[string]int)
+	for _, dev := range devList {
+		pairDaysMap[dev] = make(map[string]int)
 	}
 
-	// Use a closure to handle the close error properly
-	defer func() {
-		if closeErr := f.Close(); closeErr != nil && err == nil {
-			err = fmt.Errorf("error closing HTML file: %w", closeErr)
-		}
-	}()
-
-	_, err = f.WriteString(html)
-	if err != nil {
-		return fmt.Errorf("error writing HTML: %w", err)
+	// Fill in the data
+	for pair, days := range pairDays {
+		dev1, dev2 := pair[0], pair[1]
+		pairDaysMap[dev1][dev2] = days
+		pairDaysMap[dev2][dev1] = days
 	}
 
-	fmt.Println("Wrote", filename)
+	return TemplateData{
+		Developers: devList,
+		PairDays:   pairDaysMap,
+	}
+}
+
+//go:embed template.html
+var templateFS embed.FS
+
+// generateHTMLFromTemplate generates HTML from the template file and writes to output file
+func generateHTMLFromTemplate(data TemplateData, templatePath, outputPath string) error {
+	// Parse the template from embedded file system
+	tmpl, err := template.ParseFS(templateFS, templatePath)
+	if err != nil {
+		return fmt.Errorf("error parsing template: %w", err)
+	}
+
+	// Create output file
+	file, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("error creating output file: %w", err)
+	}
+	defer file.Close()
+
+	// Execute the template
+	if err := tmpl.Execute(file, data); err != nil {
+		return fmt.Errorf("error executing template: %w", err)
+	}
+
+	fmt.Println("Wrote", outputPath)
 
 	// Open the created file
-	if err := exec.Command("open", filename).Start(); err != nil {
+	if err := exec.Command("open", outputPath).Start(); err != nil {
 		return fmt.Errorf("error opening HTML file: %w", err)
 	}
 

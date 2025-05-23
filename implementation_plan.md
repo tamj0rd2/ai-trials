@@ -33,3 +33,15 @@
 - Ensure that all pairing statistics are limited to pairs where both developers are in the specified team.
 - If the flag is not provided, default to showing all developers as before.
 - Validate the contents of `my_team.json` and handle errors gracefully (e.g., file not found, invalid format).
+
+## 8. Highlight Pair Recency in HTML Table
+- Track the most recent date each pair worked together while processing commits.
+- For each pair, determine the recency category based on the most recent pairing date:
+  - Green: paired in the last 2 weeks
+  - Orange: paired in the last month (but not last 2 weeks)
+  - Red: paired over a month ago
+- Extend the template data structure to include a map of recency classes for each pair (e.g., map[string]map[string]string).
+- Update the HTML template to apply a CSS class to each cell based on the recency category.
+- Add CSS styles for green, orange, and red highlighting.
+- Test to ensure correct highlighting for all recency categories.
+

@@ -140,6 +140,15 @@ func NewCommit(date string, devs ...string) Commit {
 	return Commit{Date: date, Developers: ps}
 }
 
+// NewDevelopers constructs a Developers set from a list of names.
+func NewDevelopers(names ...string) Developers {
+	devs := Developers{}
+	for _, n := range names {
+		devs[n] = struct{}{}
+	}
+	return devs
+}
+
 // calculatePairDays groups commits by date and returns pair day counts and sorted developer list
 func calculatePairDays(commits []Commit) (map[Pair]int, []string) {
 	commitsByDate := map[string][]Commit{}
@@ -147,7 +156,7 @@ func calculatePairDays(commits []Commit) (map[Pair]int, []string) {
 		commitsByDate[c.Date] = append(commitsByDate[c.Date], c)
 	}
 	pairDays := map[Pair]map[string]struct{}{} // pair -> set of dates
-	allDevs := map[string]struct{}{}
+	allDevs := NewDevelopers()                 // Use constructor
 	for date, dailyCommits := range commitsByDate {
 		pairsToday := map[Pair]struct{}{}
 		for _, c := range dailyCommits {

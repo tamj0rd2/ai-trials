@@ -85,7 +85,7 @@ func TestParseCommit_NoCoAuthor(t *testing.T) {
 		"END_OF_COMMIT",
 	}
 	commit := parseCommit(lines)
-	wantDevs := Developers{"Alice": {}}
+	wantDevs := NewDevelopers("Alice")
 	if !reflect.DeepEqual(commit.Developers, wantDevs) {
 		t.Errorf("Expected only Alice, got %v", commit.Developers)
 	}
@@ -102,7 +102,7 @@ func TestParseCommit_WithCoAuthor(t *testing.T) {
 		"END_OF_COMMIT",
 	}
 	commit := parseCommit(lines)
-	expected := Developers{"Bob": {}, "Carol": {}}
+	expected := NewDevelopers("Bob", "Carol")
 	if !reflect.DeepEqual(commit.Developers, expected) {
 		t.Errorf("Expected Bob and Carol, got %v", commit.Developers)
 	}
@@ -120,7 +120,7 @@ func TestParseCommit_MultipleCoAuthors(t *testing.T) {
 		"END_OF_COMMIT",
 	}
 	commit := parseCommit(lines)
-	expected := Developers{"Alice": {}, "Bob": {}, "Carol": {}}
+	expected := NewDevelopers("Alice", "Bob", "Carol")
 	if !reflect.DeepEqual(commit.Developers, expected) {
 		t.Errorf("Expected Alice, Bob, and Carol, got %v", commit.Developers)
 	}
@@ -137,7 +137,7 @@ func TestParseCommit_WeirdSpacing(t *testing.T) {
 		"END_OF_COMMIT",
 	}
 	commit := parseCommit(lines)
-	expected := Developers{"Alice": {}, "Bob": {}}
+	expected := NewDevelopers("Alice", "Bob")
 	if !reflect.DeepEqual(commit.Developers, expected) {
 		t.Errorf("Expected Alice and Bob, got %v", commit.Developers)
 	}
@@ -152,7 +152,7 @@ func TestParseCommit_MultiLineRealistic(t *testing.T) {
 		"END_OF_COMMIT",
 	}
 	commit := parseCommit(lines)
-	expected := Developers{"Jane Doe": {}, "John Smith": {}, "Alex Lee": {}}
+	expected := NewDevelopers("Jane Doe", "John Smith", "Alex Lee")
 	if !reflect.DeepEqual(commit.Developers, expected) {
 		t.Errorf("got %v", commit.Developers)
 	}

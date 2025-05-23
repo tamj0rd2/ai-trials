@@ -11,14 +11,6 @@ import (
 	"time"
 )
 
-type Developers map[string]struct{}
-type Pair [2]string
-
-type Commit struct {
-	Date       string
-	Developers Developers
-}
-
 func main() {
 	since := time.Now().AddDate(0, -2, 0).Format("2006-01-02")
 	commits, err := getCommitsFromGit(since)

@@ -71,13 +71,17 @@ func main() {
 		html += fmt.Sprintf("<tr><th>%s</th>", rowDev)
 		for _, colDev := range devList {
 			if rowDev == colDev {
-				html += "<td>-</td"
+				html += "<td>-</td>"
 			} else {
 				pair := Pair{rowDev, colDev}
 				if pair[0] > pair[1] {
 					pair[0], pair[1] = pair[1], pair[0]
 				}
-				html += fmt.Sprintf("<td>%d</td>", pairDays[pair])
+				count := 0
+				if v, ok := pairDays[pair]; ok {
+					count = v
+				}
+				html += fmt.Sprintf("<td>%d</td>", count)
 			}
 		}
 		html += "</tr>"
@@ -97,12 +101,16 @@ func main() {
 		return
 	}
 	fmt.Println("Wrote output.html")
+	// Open the created file
+	if err := exec.Command("open", "output.html").Start(); err != nil {
+		fmt.Println("Error opening HTML file:", err)
+	}
 }
 
 func parseCommit(lines []string) Commit {
-	header := lines[0]
-	header = strings.TrimSuffix(header, "END_OF_COMMIT")
-	parts := strings.SplitN(header, "|", 3)
+	joined := strings.Join(lines, "\n")
+	joined = strings.TrimSuffix(joined, "END_OF_COMMIT")
+	parts := strings.SplitN(joined, "|", 3)
 	author := strings.TrimSpace(parts[0])
 	date := strings.TrimSpace(parts[1])
 	message := ""

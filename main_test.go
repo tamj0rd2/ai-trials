@@ -80,7 +80,10 @@ func TestPairingLogic_NoPairs(t *testing.T) {
 }
 
 func TestParseCommit_NoCoAuthor(t *testing.T) {
-	lines := []string{"Alice|2025-05-01|Initial commitEND_OF_COMMIT"}
+	lines := []string{
+		"Alice|2025-05-01|Initial commit",
+		"END_OF_COMMIT",
+	}
 	commit := parseCommit(lines)
 	wantDevs := Developers{"Alice": {}}
 	if !reflect.DeepEqual(commit.Developers, wantDevs) {
@@ -92,7 +95,12 @@ func TestParseCommit_NoCoAuthor(t *testing.T) {
 }
 
 func TestParseCommit_WithCoAuthor(t *testing.T) {
-	lines := []string{"Bob|2025-05-02|Add feature\n\nCo-authored-by: Carol <carol@example.com>END_OF_COMMIT"}
+	lines := []string{
+		"Bob|2025-05-02|Add feature",
+		"",
+		"Co-authored-by: Carol <carol@example.com>",
+		"END_OF_COMMIT",
+	}
 	commit := parseCommit(lines)
 	expected := Developers{"Bob": {}, "Carol": {}}
 	if !reflect.DeepEqual(commit.Developers, expected) {
@@ -104,7 +112,13 @@ func TestParseCommit_WithCoAuthor(t *testing.T) {
 }
 
 func TestParseCommit_MultipleCoAuthors(t *testing.T) {
-	lines := []string{"Alice|2025-05-03|Refactor\n\nCo-authored-by: Bob <bob@example.com>\nCo-authored-by: Carol <carol@example.com>END_OF_COMMIT"}
+	lines := []string{
+		"Alice|2025-05-03|Refactor",
+		"",
+		"Co-authored-by: Bob <bob@example.com>",
+		"Co-authored-by: Carol <carol@example.com>",
+		"END_OF_COMMIT",
+	}
 	commit := parseCommit(lines)
 	expected := Developers{"Alice": {}, "Bob": {}, "Carol": {}}
 	if !reflect.DeepEqual(commit.Developers, expected) {
@@ -116,10 +130,30 @@ func TestParseCommit_MultipleCoAuthors(t *testing.T) {
 }
 
 func TestParseCommit_WeirdSpacing(t *testing.T) {
-	lines := []string{"Alice|2025-05-04|Fix bug\n\n  Co-authored-by: Bob <bob@example.com>  END_OF_COMMIT"}
+	lines := []string{
+		"Alice|2025-05-04|Fix bug",
+		"",
+		"  Co-authored-by: Bob <bob@example.com>  ",
+		"END_OF_COMMIT",
+	}
 	commit := parseCommit(lines)
 	expected := Developers{"Alice": {}, "Bob": {}}
 	if !reflect.DeepEqual(commit.Developers, expected) {
 		t.Errorf("Expected Alice and Bob, got %v", commit.Developers)
+	}
+}
+
+func TestParseCommit_MultiLineRealistic(t *testing.T) {
+	lines := []string{
+		"Jane Doe|2025-05-22|Implement new feature X",
+		"",
+		"Co-authored-by: John Smith <john.smith@example.com>",
+		"Co-authored-by: Alex Lee <alex.lee@example.com>",
+		"END_OF_COMMIT",
+	}
+	commit := parseCommit(lines)
+	expected := Developers{"Jane Doe": {}, "John Smith": {}, "Alex Lee": {}}
+	if !reflect.DeepEqual(commit.Developers, expected) {
+		t.Errorf("got %v", commit.Developers)
 	}
 }

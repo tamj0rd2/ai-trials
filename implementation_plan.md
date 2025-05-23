@@ -15,7 +15,8 @@
 
 ## 4. Format Output
 - Collect all unique developers.
-- Print a human-readable table with developers as both rows and columns, and the cell values as the number of days each pair has worked together.
+- Generate an HTML file with a table with developers as both rows and columns, and the cell values as the number of days each pair has worked together.
+- Write the HTML output to a file (e.g., `output.html`).
 
 ## 5. CLI Integration
 - Implement the above logic in a Go main function.

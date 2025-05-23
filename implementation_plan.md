@@ -34,14 +34,19 @@
 - If the flag is not provided, default to showing all developers as before.
 - Validate the contents of `my_team.json` and handle errors gracefully (e.g., file not found, invalid format).
 
-## 8. Highlight Pair Recency in HTML Table
-- Track the most recent date each pair worked together while processing commits.
-- For each pair, determine the recency category based on the most recent pairing date:
-  - Green: paired in the last 2 weeks
-  - Orange: paired in the last month (but not last 2 weeks)
-  - Red: paired over a month ago
-- Extend the template data structure to include a map of recency classes for each pair (e.g., map[string]map[string]string).
-- Update the HTML template to apply a CSS class to each cell based on the recency category.
-- Add CSS styles for green, orange, and red highlighting.
-- Test to ensure correct highlighting for all recency categories.
+## 8. Use Flat PairOverview Data Structure
+- Replace nested or map-based pair statistics with a flat slice of PairOverview structs for simplicity and clarity.
+- Define a PairOverview struct with the following fields:
+  - Dev1: string (first developer)
+  - Dev2: string (second developer)
+  - LastPaired: string or time.Time (date they last paired)
+  - DaysPaired: int (number of days paired in the last 2 months)
+- When processing commits, for each unique pair, record the most recent date they paired and the total number of days paired.
+- Use this slice as the main data structure for passing pair statistics to the template and for any further processing or filtering.
 
+## 9. Highlight Pair Recency in HTML Table (Updated)
+- Pass the slice of PairOverview to the template for rendering.
+- In the template, derive the recency category (green/orange/red) from LastPaired.
+- Update the HTML template to iterate over the slice and display the relevant information, applying CSS classes for recency highlighting.
+- Add CSS styles for green, orange, and red highlighting.
+- Test to ensure correct highlighting and data display for all recency categories.

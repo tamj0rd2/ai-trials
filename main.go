@@ -2,7 +2,10 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
+	"flag"
 	"fmt"
+	"os"
 	"os/exec"
 	"sort"
 	"strings"
@@ -10,8 +13,17 @@ import (
 )
 
 // main is the entry point of the application. It fetches commits,
-// calculates pair programming days, generates HTML, and outputs the results.
+// calculates pair programming days, applies team filtering if needed, generates HTML, and outputs the results.
 func main() {
+	teamFile := flag.String("team", "", "Optional: path to a JSON file containing a list of developer names or emails to filter the output")
+	flag.Parse()
+
+	team, err := parseTeamMembers(*teamFile)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	commits, err := getCommitsFromGit()
 	if err != nil {
 		fmt.Println("Error getting commits:", err)
@@ -20,12 +32,34 @@ func main() {
 
 	pairDays, devList := calculatePairDays(commits)
 
+	if len(team) > 0 {
+		devList = FilterDevelopersByTeam(devList, team)
+		pairDays = FilterPairDaysByTeam(pairDays, team)
+	}
+
 	// Convert to template data structure
 	templateData := createTemplateData(pairDays, devList)
 
 	if err := generateHTMLFromTemplate(templateData, "template.html", "output.html"); err != nil {
 		fmt.Println("Error generating HTML:", err)
 	}
+}
+
+// parseTeamMembers loads a TeamMembers list from a JSON file path. Returns an empty list if path is empty.
+func parseTeamMembers(path string) (TeamMembers, error) {
+	if path == "" {
+		return nil, nil
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("error opening team file: %w", err)
+	}
+	defer file.Close()
+	var team TeamMembers
+	if err := json.NewDecoder(file).Decode(&team); err != nil {
+		return nil, fmt.Errorf("error parsing team file: %w", err)
+	}
+	return team, nil
 }
 
 // NewDevelopers creates a new Developers map from a list of developer names

@@ -20,18 +20,28 @@ type Commit struct {
 }
 
 func main() {
-	// Get date 2 months ago
 	since := time.Now().AddDate(0, -2, 0).Format("2006-01-02")
-	gitLogFormat := "%an|%ad|%BEND_OF_COMMIT"
-	cmd := exec.Command("git", "log", "--since="+since, "--pretty=format:"+gitLogFormat, "--date=short")
-	stdout, err := cmd.StdoutPipe()
+	commits, err := getCommitsFromGit(since)
 	if err != nil {
 		fmt.Println("Error getting git log:", err)
 		return
 	}
+	pairDays, devList := calculatePairDays(commits)
+	html := generateHTMLTable(pairDays, devList)
+	if err := writeAndOpenHTML(html, "output.html"); err != nil {
+		fmt.Println("Error writing or opening HTML file:", err)
+	}
+}
+
+func getCommitsFromGit(since string) ([]Commit, error) {
+	gitLogFormat := "%an|%ad|%BEND_OF_COMMIT"
+	cmd := exec.Command("git", "log", "--since="+since, "--pretty=format:"+gitLogFormat, "--date=short")
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
 	if err := cmd.Start(); err != nil {
-		fmt.Println("Error starting git log:", err)
-		return
+		return nil, err
 	}
 	commits := []Commit{}
 	commitLines := []string{}
@@ -48,25 +58,20 @@ func main() {
 		}
 	}
 	if err := cmd.Wait(); err != nil {
-		fmt.Println("Error waiting for git log:", err)
-		return
+		return nil, err
 	}
-	// Group commits by date and calculate pair days
-	pairDays, devList := calculatePairDays(commits)
+	return commits, nil
+}
 
-	// Generate HTML output
+func generateHTMLTable(pairDays map[Pair]int, devList []string) string {
 	html := "<html><head><title>Pair Programming Stats</title><style>body,table,th,td{font-family:sans-serif;} table,th,td{border:1px solid #ccc;border-collapse:collapse;}th,td{padding:8px;}</style></head><body>"
 	html += "<h1>Pair Programming Days Table (Last 2 Months)</h1>"
 	html += "<table>"
-
-	// Header row
 	html += "<tr><th></th>"
 	for _, d := range devList {
 		html += fmt.Sprintf("<th>%s</th>", d)
 	}
 	html += "</tr>"
-
-	// Data rows
 	for _, rowDev := range devList {
 		html += fmt.Sprintf("<tr><th>%s</th>", rowDev)
 		for _, colDev := range devList {
@@ -87,24 +92,24 @@ func main() {
 		html += "</tr>"
 	}
 	html += "</table></body></html>"
+	return html
+}
 
-	// Write to file
-	f, err := os.Create("output.html")
+func writeAndOpenHTML(html, filename string) error {
+	f, err := os.Create(filename)
 	if err != nil {
-		fmt.Println("Error creating HTML file:", err)
-		return
+		return err
 	}
 	defer f.Close()
 	_, err = f.WriteString(html)
 	if err != nil {
-		fmt.Println("Error writing HTML:", err)
-		return
+		return err
 	}
-	fmt.Println("Wrote output.html")
-	// Open the created file
-	if err := exec.Command("open", "output.html").Start(); err != nil {
-		fmt.Println("Error opening HTML file:", err)
+	fmt.Println("Wrote", filename)
+	if err := exec.Command("open", filename).Start(); err != nil {
+		return err
 	}
+	return nil
 }
 
 func parseCommit(lines []string) Commit {

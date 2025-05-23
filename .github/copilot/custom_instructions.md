@@ -179,3 +179,11 @@ func sumEvenNumbers(data []int) int {
 ```
 
 The improved function name makes the comment unnecessary and makes the code's purpose immediately clear.
+
+# Workflow for Implementation Requests
+
+- When the user requests a change, first describe how you would implement it, including which files or areas of the codebase you would touch and why.
+- Ask if this approach can be added to the implementation plan.
+- Only update the implementation plan after receiving user approval.
+- Wait for explicit user confirmation before making any code changes.
+

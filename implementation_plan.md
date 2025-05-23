@@ -25,3 +25,11 @@
 ## 6. Future-Proofing
 - Structure the code to allow for easy extension to multiple repositories in the future.
 
+## 7. Configurable Developer Teams (JSON)
+- Allow the user to specify a `my_team.json` file containing a list of developer names and/or email addresses that define the team of interest.
+- The file should be a simple JSON array, e.g. `["alice@example.com", "Bob"]`.
+- Add a CLI flag (e.g., `--team my_team.json`) to accept this file as input.
+- When the flag is provided, filter the output so that only developers listed in `my_team.json` appear in the HTML table (both rows and columns).
+- Ensure that all pairing statistics are limited to pairs where both developers are in the specified team.
+- If the flag is not provided, default to showing all developers as before.
+- Validate the contents of `my_team.json` and handle errors gracefully (e.g., file not found, invalid format).

@@ -22,3 +22,7 @@ This command line application analyzes git commit history to determine how many 
 - The tool should only require access to the local git repository in the current working directory.
 - The output should be an HTML file formatted for easy human readability.
 
+## Future Improvements
+
+- **Deduplicate Developer Names**: Ensure that developer names are not duplicated in the output, even if they appear with different email addresses or minor variations.
+- **Configurable Developer Teams**: Allow configuration of which developers or teams to display in the output. The repository may contain all developer names, but users should be able to filter or group by teams.

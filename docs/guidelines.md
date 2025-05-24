@@ -186,4 +186,5 @@ The improved function name makes the comment unnecessary and makes the code's pu
 - Ask if this approach can be added to the implementation plan.
 - Only update the implementation plan after receiving user approval.
 - Wait for explicit user confirmation before making any code changes.
+- You don't need to follow this entire process for changes to guidelines.md. You just need my approval to edit this file.
 
